@@ -9,8 +9,8 @@ import beepSound from './beep.wav'
 
 const App = () => {
   const [type, setType] = useState<'break' | 'session'>('session')
-  const [sessionLength, handleSessionIncrease, handleSessionDecrease] = useNumberControls(25)
-  const [breakLength, handleBreakIncrease, handleBreakDecrease] = useNumberControls(5)
+  const [sessionLength, handleSessionIncrease, handleSessionDecrease] = useSetMinuteControl(25)
+  const [breakLength, handleBreakIncrease, handleBreakDecrease] = useSetMinuteControl(5)
 
   const [play] = useSound(beepSound)
   const [currentSessionSecond, playing, toggleStartPause, handleReset] = useSet(
@@ -78,12 +78,12 @@ const App = () => {
 
 export default App
 
-type UseNumberControlsPayload = [
+type UseSetMinuteControlPayload = [
   number,
   () => void,
   () => void,
 ]
-const useNumberControls = (defaultValue: number): UseNumberControlsPayload => {
+const useSetMinuteControl = (defaultValue: number): UseSetMinuteControlPayload => {
   const [value, setValue] = useState(defaultValue)
   const handleIncrease = () => {
     if (value > 59) return
