@@ -1,5 +1,5 @@
 import { ArrowDownward, ArrowUpward, Autorenew, Pause, PlayArrow } from '@mui/icons-material'
-import { Box, Container, Grid, IconButton, Paper, Typography } from '@mui/material'
+import { Box, Container, Grid, IconButton, Paper, TextField, Typography } from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import { useInterval } from 'usehooks-ts'
@@ -8,14 +8,25 @@ import useSound from 'use-sound'
 import beepSound from './beep.wav'
 
 const App = () => {
+  const [currentSet, setCurrentSet] = useState(0)
+  const [numberOfSet, handleSetsInc, handleSetsDesc] = useNumberControl(3, { min: 0 })
+
   const [type, setType] = useState<'break' | 'session'>('session')
-  const [sessionLength, handleSessionIncrease, handleSessionDecrease] = useSetMinuteControl(25)
-  const [breakLength, handleBreakIncrease, handleBreakDecrease] = useSetMinuteControl(5)
+  const [sessionLength, handleSessionIncrease, handleSessionDecrease] = useNumberControl(25, { max: 60, min: 0})
+  const [breakLength, handleBreakIncrease, handleBreakDecrease] = useNumberControl(5, { max: 60, min: 0 })
 
   const [play] = useSound(beepSound)
   const [currentSessionSecond, playing, toggleStartPause, handleReset] = useSet(
     type === 'session' ? sessionLength : breakLength,
     () => {
+      if (currentSet >= numberOfSet - 1) {
+        handleReset('session')
+        setCurrentSet(0)
+        return
+      }
+
+      if (type === 'break') setCurrentSet(pre => pre + 1)
+
       const toType = type === 'session' ? 'break' : 'session'
 
       setType(toType)
@@ -41,25 +52,36 @@ const App = () => {
             </Typography>
           </Grid>
 
-          <Grid item xs={6}>
+          <Grid item xs={4}>
             <SetTimeInput
               label='Break Length'
               value={breakLength}
               onIncrease={handleBreakIncrease}
               onDecrease={handleBreakDecrease}
+              disabled={playing}
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={4}>
+            <SetTimeInput
+              label='Sets'
+              value={numberOfSet}
+              onIncrease={handleSetsInc}
+              onDecrease={handleSetsDesc}
+              disabled={playing}
+            />
+          </Grid>
+          <Grid item xs={4}>
             <SetTimeInput
               label='Session Length'
               value={sessionLength}
               onIncrease={handleSessionIncrease}
               onDecrease={handleSessionDecrease}
+              disabled={playing}
             />
           </Grid>
 
           <Grid item xs={12} container sx={{ justifyContent: 'center' }}>
-            <ClockFace label={type} second={currentSessionSecond} />
+            <ClockFace label={`${type} ${currentSet + 1}`} second={currentSessionSecond} />
           </Grid>
 
           <Grid item xs={12} container sx={{ justifyContent: 'center' }}>
@@ -78,20 +100,20 @@ const App = () => {
 
 export default App
 
-type UseSetMinuteControlPayload = [
+type UseNumberControlPayload = [
   number,
   () => void,
   () => void,
 ]
-const useSetMinuteControl = (defaultValue: number): UseSetMinuteControlPayload => {
+const useNumberControl = (defaultValue: number, { max, min }: { max?: number, min?: number }): UseNumberControlPayload => {
   const [value, setValue] = useState(defaultValue)
   const handleIncrease = () => {
-    if (value > 59) return
+    if (!Number.isNaN(max) && value >= max!) return
     
     setValue(current => current + 1)
   }
   const handleDecrease = () => {
-    if (value < 2) return
+    if (!Number.isNaN(min) && value <= min!) return
 
     setValue(current => current - 1)
   }
@@ -137,8 +159,9 @@ type SetTimeInputProps = {
   value: number
   onIncrease: () => void
   onDecrease: () => void
+  disabled?: boolean
 }
-const SetTimeInput: React.FC<SetTimeInputProps> = ({ label, value, onIncrease, onDecrease }) => (
+const SetTimeInput: React.FC<SetTimeInputProps> = ({ label, value, onIncrease, onDecrease, disabled = false }) => (
   <>
     <Typography variant='h5' align='center' id='session-label'>
       {label}
@@ -146,7 +169,7 @@ const SetTimeInput: React.FC<SetTimeInputProps> = ({ label, value, onIncrease, o
     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <IconButton
         onClick={onIncrease}
-        // disabled={playing}
+        disabled={disabled}
         sx={{ marginRight: 1 }}
       >
         <ArrowUpward />
@@ -156,7 +179,7 @@ const SetTimeInput: React.FC<SetTimeInputProps> = ({ label, value, onIncrease, o
       </Typography>
       <IconButton
         onClick={onDecrease}
-        // disabled={playing}
+        disabled={disabled}
         sx={{ marginLeft: 1 }}
       >
         <ArrowDownward />
