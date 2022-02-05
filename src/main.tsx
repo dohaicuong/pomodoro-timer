@@ -2,19 +2,22 @@ import { createRoot } from 'react-dom'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
-import ThemeProvider from './providers/theme/ThemeProvider'
+import { BrowserRouter } from 'react-router-dom'
+import AppRoutes from './providers/routes/AppRoutes'
 
-import App from './App'
+import ThemeProvider from './providers/theme/ThemeProvider'
 
 const rootElement = document.getElementById('root')
 if(!rootElement) throw new Error('Root element not found. Unable to render the App')
 
 createRoot(rootElement).render(
-  <ThemeProvider>
-    <ErrorBoundary fallback={<>Something went wrong!</>}>
-      <Suspense fallback='Loading...'>
-        <App />
-      </Suspense>
-    </ErrorBoundary>
-  </ThemeProvider>
+  <BrowserRouter>
+    <ThemeProvider>
+      <ErrorBoundary fallback={<>Something went wrong!</>}>
+        <Suspense fallback='Loading...'>
+          <AppRoutes />
+        </Suspense>
+      </ErrorBoundary>
+    </ThemeProvider>
+  </BrowserRouter>
 )

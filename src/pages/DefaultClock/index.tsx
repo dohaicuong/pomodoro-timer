@@ -7,12 +7,12 @@ import { red } from '@mui/material/colors'
 import useSound from 'use-sound'
 import beepSound from './beep.wav'
 
-const App = () => {
+const DefaultClock = () => {
   const [currentSet, setCurrentSet] = useState(0)
   const [numberOfSet, handleSetsInc, handleSetsDesc] = useNumberControl(3, { min: 0 })
 
   const [type, setType] = useState<'break' | 'session'>('session')
-  const [sessionLength, handleSessionIncrease, handleSessionDecrease] = useNumberControl(25, { max: 60, min: 0})
+  const [sessionLength, handleSessionIncrease, handleSessionDecrease, setSessionLength] = useNumberControl(25, { max: 60, min: 0 })
   const [breakLength, handleBreakIncrease, handleBreakDecrease] = useNumberControl(5, { max: 60, min: 0 })
 
   const [play] = useSound(beepSound)
@@ -79,7 +79,7 @@ const App = () => {
               disabled={playing}
             />
           </Grid>
-
+          
           <Grid item xs={12} container sx={{ justifyContent: 'center' }}>
             <ClockFace label={`${type} ${currentSet + 1}`} second={currentSessionSecond} />
           </Grid>
@@ -98,12 +98,13 @@ const App = () => {
   )
 }
 
-export default App
+export default DefaultClock
 
 type UseNumberControlPayload = [
   number,
   () => void,
   () => void,
+  (number: number) => void,
 ]
 const useNumberControl = (defaultValue: number, { max, min }: { max?: number, min?: number }): UseNumberControlPayload => {
   const [value, setValue] = useState(defaultValue)
@@ -118,7 +119,7 @@ const useNumberControl = (defaultValue: number, { max, min }: { max?: number, mi
     setValue(current => current - 1)
   }
 
-  return [value, handleIncrease, handleDecrease]
+  return [value, handleIncrease, handleDecrease, setValue]
 }
 
 const useSet = (
